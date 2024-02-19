@@ -1,6 +1,7 @@
 import string
 import numpy as np
 import time
+from ..logger import get_logger
 
 class GeneticAlgorithm():
     """An implementation of a Genetic Algorithm which will try to produce the user
@@ -33,6 +34,7 @@ class GeneticAlgorithm():
             random_seed = int(time.time())
         np.random.seed = random_seed
         self.rng = np.random.default_rng(seed=random_seed)
+        self.logger = get_logger(log_level)
 
     def _initialize(self):
         """ Initialize population with random strings """
@@ -99,8 +101,8 @@ class GeneticAlgorithm():
             # 1-elitism
             new_population[0, :] = fittest_individual
 
-            print("[%d Closest Candidate: '%s', Fitness: %.8f]" % (epoch, ''.join([chr(t) for t in fittest_individual]), highest_fitness))
+            self.logger.debug("[%d Closest Candidate: '%s', Fitness: %.8f]" % (epoch, ''.join([chr(t) for t in fittest_individual]), highest_fitness))
             self.population = np.copy(new_population)
 
-        print("[%d Answer: '%s']" % (epoch, ''.join([chr(t) for t in fittest_individual])))
+        self.logger.info("[%d Answer: '%s']" % (epoch, ''.join([chr(t) for t in fittest_individual])))
         return ''.join([chr(t) for t in fittest_individual]), epoch
