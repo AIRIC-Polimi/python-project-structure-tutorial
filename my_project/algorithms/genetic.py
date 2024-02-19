@@ -1,6 +1,7 @@
 import string
 import numpy as np
 import time
+from tqdm import tqdm
 from ..logger import get_logger
 
 class GeneticAlgorithm():
@@ -73,7 +74,7 @@ class GeneticAlgorithm():
         self._initialize()
 
         new_population = np.zeros(self.population.shape, dtype='int8')
-        for epoch in range(iterations):
+        for epoch in tqdm(range(iterations)):
             population_fitness = self._calculate_fitness()
 
             fittest_individual = self.population[population_fitness.argmax()]
