@@ -1,0 +1,23 @@
+[project]
+name = "python-project-structure-tutorial"
+version = "0.1.0"
+description = "Tutorial on how to structure a python project"
+authors = [
+    {name = "Tommaso Bianchi", email = "tommaso.bianchi@polimi.it"},
+]
+dependencies = [
+    "numpy>=1.26, <1.27",
+    "matplotlib>=3.8, <3.9",
+    "pandas>=2.2, <2.3",
+]
+requires-python = ">=3.10, <3.11"
+readme = "README.md"
+license = {text = "MIT"}
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+
+[tool.pdm]
+distribution = true
