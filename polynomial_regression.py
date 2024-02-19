@@ -5,6 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import math
 from os import path
+import time
 
 def normalize(X, axis=-1, order=2):
     """ Normalize the dataset X """
@@ -213,11 +214,8 @@ def main():
     # Load temperature data
     data = pd.read_csv(path.join(path.dirname(__file__), 'data/TempLinkoping2016.txt'), sep="\t")
 
-    time = np.atleast_2d(data["time"].values).T
-    temp = data["temp"].values
-
-    X = time # fraction of the year [0, 1]
-    y = temp
+    X = np.atleast_2d(data["time"].values).T  # fraction of the year [0, 1]
+    y = data["temp"].values
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.4)
 
@@ -275,7 +273,7 @@ def main():
     plt.xlabel('Day')
     plt.ylabel('Temperature in Celcius')
     plt.legend((m1, m2), ("Training data", "Test data"), loc='lower right')
-    plt.savefig("polynomial_regression.png")
+    plt.savefig(f"figures/{int(time.time())}_polynomial_regression.png")
 
 if __name__ == "__main__":
     main()
