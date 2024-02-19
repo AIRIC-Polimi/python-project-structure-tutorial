@@ -1,5 +1,5 @@
 [project]
-name = "python-project-structure-tutorial"
+name = "my_project"
 version = "0.1.0"
 description = "Tutorial on how to structure a python project"
 authors = [
