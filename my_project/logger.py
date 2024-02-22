@@ -1,6 +1,7 @@
 import logging
 import os
 
+
 def get_logger(level: str = None):
     logger = logging.getLogger("aim_tutorial")
 
