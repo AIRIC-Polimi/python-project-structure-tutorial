@@ -1,7 +1,9 @@
 import string
-import numpy as np
 import time
+
+import numpy as np
 from tqdm import tqdm
+
 from ..logger import get_logger
 
 
@@ -25,7 +27,7 @@ class GeneticAlgorithm:
         The logging level. If not given, uses the defaults from `aim_tutorial/logger.py`.
     """
 
-    def __init__(self, target_string, population_size, mutation_rate, random_seed=None, log_level=None):
+    def __init__(self, target_string, population_size, mutation_rate, random_seed=None, log_level=None, log_file=None):
         self.target = target_string
         self.target_tokens = np.array([ord(token) for token in self.target])
         self.population_size = population_size
@@ -37,7 +39,7 @@ class GeneticAlgorithm:
             random_seed = int(time.time())
         np.random.seed = random_seed
         self.rng = np.random.default_rng(seed=random_seed)
-        self.logger = get_logger(log_level)
+        self.logger = get_logger(log_level, filename=log_file)
 
     def _initialize(self):
         """Initialize population with random strings"""

@@ -12,3 +12,5 @@ min_regularization_factor   = 0
 max_regularization_factor   = 0.1
 regularization_factor_step  = 0.01
 figures_folder              = figures/
+experiments_folder          = experiments/polynomial
+log_level                   = DEBUG

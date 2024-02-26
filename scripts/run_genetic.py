@@ -1,6 +1,8 @@
 import argparse
 import configparser
-from os.path import exists
+import json
+import time
+from os import makedirs, path
 
 from my_project.algorithms import GeneticAlgorithm
 
@@ -31,11 +33,14 @@ Mutation is done by randomly assigning new characters with uniform probability."
         type=str,
         help="The path to a config file to read from. Configs from the file can be overridden by commandline options.",
     )
+    parser.add_argument(
+        "--experiments-folder", type=str, help="The path to a folder where to store experiments results (optional)."
+    )
 
     args = parser.parse_args().__dict__
 
     if args["config_file"]:
-        if not exists(args["config_file"]):
+        if not path.exists(args["config_file"]):
             print(f"[WARNING] Provided config file {args['config_file']} not found.")
         else:
             config_parser = configparser.ConfigParser()
@@ -44,6 +49,9 @@ Mutation is done by randomly assigning new characters with uniform probability."
             for key, value in config_parser.items("DEFAULT"):
                 if key not in args or args[key] is None:
                     args[key] = value
+
+                    if key in ["experiments_folder"]:
+                        args[key] = path.abspath(path.join(path.dirname(__file__), "..", args[key]))
 
     if print_config:
         max_key_len = max([len(k) for k in args])
@@ -58,12 +66,19 @@ Mutation is done by randomly assigning new characters with uniform probability."
 def run():
     config = parse_config(print_config=True)
 
+    if config["experiments_folder"] is not None:
+        run_folder = path.join(config["experiments_folder"], str(int(time.time())))
+        makedirs(run_folder, exist_ok=True)
+        with open(path.join(run_folder, "config.json"), "w") as f:
+            json.dump(config, f, indent=4)
+
     GeneticAlgorithm(
         target_string=config["target_string"],
         population_size=int(config["population"]),
         mutation_rate=float(config["mutation_rate"]),
         random_seed=config["seed"],
         log_level="DEBUG" if config["verbose"] else "INFO",
+        log_file=path.join(run_folder, "logs") if run_folder is not None else None,
     ).run(iterations=int(config["iterations"]))
 
 

@@ -1,5 +1,6 @@
 [DEFAULT]
-population    = 100
-mutation_rate = 0.02
-iterations    = 1000
-verbose       = False
+population          = 100
+mutation_rate       = 0.02
+iterations          = 1000
+verbose             = False
+experiments_folder  = experiments/genetic

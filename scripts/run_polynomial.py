@@ -1,13 +1,15 @@
 import argparse
 import configparser
+import json
 import time
-from os import path
+from os import makedirs, path
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
 from my_project.data.preprocess import k_fold_cross_validation_sets, train_test_split
+from my_project.logger import get_logger
 from my_project.metrics import mean_squared_error
 from my_project.models import PolynomialRegression, PolynomialRidgeRegression
 
@@ -54,6 +56,10 @@ def parse_config(print_config=False):
         type=str,
         help="The path to a config file to read from. Configs from the file can be overridden by commandline options.",
     )
+    parser.add_argument(
+        "--experiments-folder", type=str, help="The path to a folder where to store experiments results (optional)."
+    )
+    parser.add_argument("--log-level", type=str, help="The level at which to print logs.")
 
     args = parser.parse_args().__dict__
 
@@ -68,7 +74,7 @@ def parse_config(print_config=False):
                 if key not in args or args[key] is None:
                     args[key] = value
 
-                    if key in ["dataset_path", "figures_folder"]:
+                    if key in ["dataset_path", "figures_folder", "experiments_folder"]:
                         args[key] = path.abspath(path.join(path.dirname(__file__), "..", args[key]))
 
     if "dataset_path" not in args or args["dataset_path"] is None:
@@ -86,6 +92,14 @@ def parse_config(print_config=False):
 
 
 def run(config):
+    if config["experiments_folder"] is not None:
+        run_folder = path.join(config["experiments_folder"], str(int(time.time())))
+        makedirs(run_folder, exist_ok=True)
+        with open(path.join(run_folder, "config.json"), "w") as f:
+            json.dump(config, f, indent=4)
+
+    logger = get_logger(config["log_level"], path.join(run_folder, "logs") if run_folder is not None else None)
+
     # Load temperature data
     data = pd.read_csv(config["dataset_path"], sep="\t")
 
@@ -98,7 +112,7 @@ def run(config):
         # Finding regularization constant using cross validation
         lowest_error = float("inf")
         best_reg_factor = None
-        print("Finding regularization constant using cross validation:")
+        logger.info("Finding regularization constant using cross validation:")
         for reg_factor in np.arange(
             float(config["min_regularization_factor"]),
             float(config["max_regularization_factor"]),
@@ -120,7 +134,7 @@ def run(config):
             mse /= int(config["k_fold"])
 
             # Print the mean squared error
-            print("\tMean Squared Error: %s (regularization: %s)" % (mse, reg_factor))
+            logger.debug("Mean Squared Error: %s (regularization: %s)" % (mse, reg_factor))
 
             # Save reg. constant that gave lowest error
             if mse < lowest_error:
@@ -146,9 +160,9 @@ def run(config):
     mse = mean_squared_error(y_test, y_pred)
 
     if config["ridge_regression"]:
-        print("Mean squared error: %s (given by reg. factor: %s)" % (mse, best_reg_factor))
+        logger.info("Mean squared error: %s (given by reg. factor: %s)" % (mse, best_reg_factor))
     else:
-        print("Mean squared error: %s" % mse)
+        logger.info("Mean squared error: %s" % mse)
 
     y_pred_line = model.predict(X)
 
