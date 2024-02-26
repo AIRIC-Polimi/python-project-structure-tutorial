@@ -1,5 +1,4 @@
 import argparse
-import configparser
 import json
 import time
 from os import makedirs, path
@@ -12,83 +11,51 @@ from my_project.data.preprocess import k_fold_cross_validation_sets, train_test_
 from my_project.logger import get_logger
 from my_project.metrics import mean_squared_error
 from my_project.models import PolynomialRegression, PolynomialRidgeRegression
+from scripts.utils.parse_config import parse_config
 
+parser = argparse.ArgumentParser(
+    prog="run_polynomial.py",
+    description="Implementation of a Linear Regression with polynomial features to perform a regression task over a given dataset.",
+)
 
-def parse_config(print_config=False):
-    parser = argparse.ArgumentParser(
-        prog="run_polynomial.py",
-        description="Implementation of a Linear Regression with polynomial features to perform a regression task over a given dataset.",
-    )
-
-    parser.add_argument("--dataset-path", type=str, help="The path to the dataset to use for the regression.")
-    parser.add_argument("--x-name", type=str, help="The name of the x column in the input dataset.")
-    parser.add_argument("--y-name", type=str, help="The name of the y column in the input dataset.")
-    parser.add_argument("--test-perc", type=float, help="The percentage of data to reserve for the test split.")
-    parser.add_argument("--poly-degree", type=int, help="The maximum degree of polynomial to use.")
-    parser.add_argument("--learning-rate", type=float, help="The learning rate to use for gradient descent.")
-    parser.add_argument("--iterations", type=int, help="The number of iterations to run the gradient descent.")
-    parser.add_argument("-k", "--k-fold", type=int, help="The k to use for k fold crossvalidation of hyperparameters.")
-    parser.add_argument(
-        "--ridge-regression", action="store_true", help="Whether to use ridge regression regularization."
-    )
-    parser.add_argument(
-        "--min-regularization-factor",
-        type=float,
-        help="The minimum regularization factor to try when using ridge regression.",
-    )
-    parser.add_argument(
-        "--max-regularization-factor",
-        type=float,
-        help="The maximum regularization factor to try when using ridge regression.",
-    )
-    parser.add_argument(
-        "--regularization-factor-step",
-        type=float,
-        help="The step to use when trying diffent regularization factor values.",
-    )
-    parser.add_argument(
-        "--figures-folder",
-        type=str,
-        help="The path of the folder where to store figures",
-    )
-    parser.add_argument(
-        "--config-file",
-        type=str,
-        help="The path to a config file to read from. Configs from the file can be overridden by commandline options.",
-    )
-    parser.add_argument(
-        "--experiments-folder", type=str, help="The path to a folder where to store experiments results (optional)."
-    )
-    parser.add_argument("--log-level", type=str, help="The level at which to print logs.")
-
-    args = parser.parse_args().__dict__
-
-    if args["config_file"]:
-        if not path.exists(args["config_file"]):
-            print(f"[WARNING] Provided config file {args['config_file']} not found.")
-        else:
-            config_parser = configparser.ConfigParser()
-            config_parser.read(args["config_file"])
-
-            for key, value in config_parser.items("DEFAULT"):
-                if key not in args or args[key] is None:
-                    args[key] = value
-
-                    if key in ["dataset_path", "figures_folder", "experiments_folder"]:
-                        args[key] = path.abspath(path.join(path.dirname(__file__), "..", args[key]))
-
-    if "dataset_path" not in args or args["dataset_path"] is None:
-        print("[ERROR] Must provide the path to the dataset with the --dataset-path option")
-        exit(1)
-
-    if print_config:
-        max_key_len = max([len(k) for k in args])
-        print("--- CONFIGURATION ---" + "-" * max_key_len)
-        for k, v in args.items():
-            print(f"{k.replace('_', ' '):<{max_key_len+1}}: {v}")
-        print("---------------------" + "-" * max_key_len)
-
-    return args
+parser.add_argument("--dataset-path", type=str, help="The path to the dataset to use for the regression.")
+parser.add_argument("--x-name", type=str, help="The name of the x column in the input dataset.")
+parser.add_argument("--y-name", type=str, help="The name of the y column in the input dataset.")
+parser.add_argument("--test-perc", type=float, help="The percentage of data to reserve for the test split.")
+parser.add_argument("--poly-degree", type=int, help="The maximum degree of polynomial to use.")
+parser.add_argument("--learning-rate", type=float, help="The learning rate to use for gradient descent.")
+parser.add_argument("--iterations", type=int, help="The number of iterations to run the gradient descent.")
+parser.add_argument("-k", "--k-fold", type=int, help="The k to use for k fold crossvalidation of hyperparameters.")
+parser.add_argument("--ridge-regression", action="store_true", help="Whether to use ridge regression regularization.")
+parser.add_argument(
+    "--min-regularization-factor",
+    type=float,
+    help="The minimum regularization factor to try when using ridge regression.",
+)
+parser.add_argument(
+    "--max-regularization-factor",
+    type=float,
+    help="The maximum regularization factor to try when using ridge regression.",
+)
+parser.add_argument(
+    "--regularization-factor-step",
+    type=float,
+    help="The step to use when trying diffent regularization factor values.",
+)
+parser.add_argument(
+    "--figures-folder",
+    type=str,
+    help="The path of the folder where to store figures",
+)
+parser.add_argument(
+    "--config-file",
+    type=str,
+    help="The path to a config file to read from. Configs from the file can be overridden by commandline options.",
+)
+parser.add_argument(
+    "--experiments-folder", type=str, help="The path to a folder where to store experiments results (optional)."
+)
+parser.add_argument("--log-level", type=str, help="The level at which to print logs.")
 
 
 def run(config):
@@ -182,4 +149,8 @@ def run(config):
 
 
 if __name__ == "__main__":
-    run(config=parse_config(print_config=True))
+    config = parse_config(parser, path_keys=["dataset_path", "figures_folder", "experiments_folder"], print_config=True)
+    if "dataset_path" not in config or config["dataset_path"] is None:
+        print("[ERROR] Must provide the path to the dataset with the --dataset-path option")
+        exit(1)
+    run(config=config)
