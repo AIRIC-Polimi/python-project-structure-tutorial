@@ -1,0 +1,14 @@
+[DEFAULT]
+dataset_path                = data/TempLinkoping2016.txt
+x_name                      = time
+y_name                      = temp
+test_perc                   = 0.2
+poly_degree                 = 15
+learning_rate               = 0.001
+iterations                  = 10000
+k_fold                      = 10
+ridge_regression            = False
+min_regularization_factor   = 0
+max_regularization_factor   = 0.1
+regularization_factor_step  = 0.01
+figures_folder              = figures/

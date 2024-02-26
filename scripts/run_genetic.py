@@ -1,4 +1,6 @@
 import argparse
+import configparser
+from os.path import exists
 
 from my_project.algorithms import GeneticAlgorithm
 
@@ -14,26 +16,39 @@ Mutation is done by randomly assigning new characters with uniform probability."
     )
 
     parser.add_argument("target_string", type=str, help="The target string to be guessed.")
-    parser.add_argument("-p", "--population", type=int, default=100, help="The population size.")
-    parser.add_argument("-m", "--mutation-rate", type=float, default=0.02, help="The mutation rate.")
-    parser.add_argument(
-        "-i", "--iterations", type=int, default=1000, help="The number of iterations to run the algorithm for."
-    )
+    parser.add_argument("-p", "--population", type=int, help="The population size.")
+    parser.add_argument("-m", "--mutation-rate", type=float, help="The mutation rate.")
+    parser.add_argument("-i", "--iterations", type=int, help="The number of iterations to run the algorithm for.")
     parser.add_argument(
         "-v",
         "--verbose",
         action="store_true",
-        default=False,
         help="Whether to increase the log level for a more verbose output.",
     )
     parser.add_argument("--seed", type=int, help="The random seed, if needed.")
+    parser.add_argument(
+        "--config-file",
+        type=str,
+        help="The path to a config file to read from. Configs from the file can be overridden by commandline options.",
+    )
 
-    args = parser.parse_args()
+    args = parser.parse_args().__dict__
+
+    if args["config_file"]:
+        if not exists(args["config_file"]):
+            print(f"[WARNING] Provided config file {args['config_file']} not found.")
+        else:
+            config_parser = configparser.ConfigParser()
+            config_parser.read(args["config_file"])
+
+            for key, value in config_parser.items("DEFAULT"):
+                if key not in args or args[key] is None:
+                    args[key] = value
 
     if print_config:
-        max_key_len = max([len(k) for k in args.__dict__])
+        max_key_len = max([len(k) for k in args])
         print("--- CONFIGURATION ---" + "-" * max_key_len)
-        for k, v in args.__dict__.items():
+        for k, v in args.items():
             print(f"{k.replace('_', ' '):<{max_key_len+1}}: {v}")
         print("---------------------" + "-" * max_key_len)
 
@@ -43,13 +58,13 @@ Mutation is done by randomly assigning new characters with uniform probability."
 def run():
     config = parse_config(print_config=True)
 
-    result = GeneticAlgorithm(
-        target_string=config.target_string,
-        population_size=config.population,
-        mutation_rate=config.mutation_rate,
-        random_seed=config.seed,
-        log_level="DEBUG" if config.verbose else "INFO",
-    ).run(iterations=config.iterations)
+    GeneticAlgorithm(
+        target_string=config["target_string"],
+        population_size=int(config["population"]),
+        mutation_rate=float(config["mutation_rate"]),
+        random_seed=config["seed"],
+        log_level="DEBUG" if config["verbose"] else "INFO",
+    ).run(iterations=int(config["iterations"]))
 
 
 if __name__ == "__main__":
